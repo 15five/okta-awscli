@@ -16,6 +16,7 @@ class AwsPartition(Enum):
     AWS = 1 
     AWS_US_GOV = 2
     AWS_EUSC = 3
+    AWS_CN = 4
 
 
 class AwsAuth():
@@ -94,6 +95,8 @@ of roles assigned to you.""" % self.role)
             sts = boto3.client('sts', region_name='us-gov-west-1')
         elif aws_partition == AwsPartition.AWS_EUSC:
             sts = boto3.client('sts', region_name='eusc-de-east-1')
+        elif aws_partition == AwsPartition.AWS_CN:
+            sts = boto3.client('sts', region_name='cn-north-1')
         else:
             sts = boto3.client('sts')
 
@@ -141,6 +144,8 @@ of roles assigned to you.""" % self.role)
             session = boto3.Session(profile_name=self.profile, region_name='us-gov-west-1')
         elif self.aws_partition == AwsPartition.AWS_EUSC:
             session = boto3.Session(profile_name=self.profile, region_name='eusc-de-east-1')
+        elif self.aws_partition == AwsPartition.AWS_CN:
+            session = boto3.Session(profile_name=self.profile, region_name='cn-north-1')
         else:
             session = boto3.Session(profile_name=self.profile)
 
@@ -254,6 +259,8 @@ of roles assigned to you.""" % self.role)
             return AwsPartition.AWS_US_GOV
         elif arn_aws_partition == 'aws-eusc':
             return AwsPartition.AWS_EUSC
+        elif arn_aws_partition == 'aws-cn':
+            return AwsPartition.AWS_CN
         else:
             return AwsPartition.AWS
 
