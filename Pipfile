@@ -4,7 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-requests = "==2.27.1"
+niquests = "==3.21.1"
+"urllib3.future" = "==2.24.908"
 click = "==7.0"
 beautifulsoup4 = "==4.11.1"
 boto3 = "==1.21.22"

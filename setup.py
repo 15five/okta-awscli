@@ -40,7 +40,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'requests',
+        'niquests',
         'click',
         'beautifulsoup4',
         'boto3',

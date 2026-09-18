@@ -1,6 +1,7 @@
 # Changelog
 ## [Unreleased]
 - Add support for Python 3.12
+- Replace requests with niquests and urllib3 with urllib3.future
 
 ## [0.5.5] 2024-03-19
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file

@@ -1,6 +1,6 @@
 import time
 import sys
-import requests
+import niquests as requests
 try:
     from u2flib_host import u2f, exc
     from u2flib_host.constants import APDU_WRONG_DATA
