@@ -5,8 +5,8 @@ WORKDIR /opt/okta-awscli
 COPY . .
 
 RUN apk --update add gcc musl-dev libffi-dev openssl-dev \
-    && pip install awscli \
-    && pip install . \
+    && pip install awscli uv \
+    && uv sync --frozen --no-dev \
     && apk del --purge gcc musl-dev libffi-dev openssl-dev
 
-ENTRYPOINT ["/usr/local/bin/okta-awscli"]
+ENTRYPOINT ["/opt/okta-awscli/.venv/bin/okta-awscli"]

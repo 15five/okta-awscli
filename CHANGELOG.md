@@ -5,6 +5,9 @@
 - Replace requests with niquests and urllib3 with urllib3.future
 - Migrate packaging from setup.py/Pipfile to uv + pyproject.toml
 - Remove obsolete .pyup.yml, CONTRIBUTING.md, and CODE_OF_CONDUCT.md
+- Remove obsolete MANIFEST file
+- Remove requirements.txt; dependencies are now managed solely by uv (pyproject.toml + uv.lock)
+- Install dependencies via uv from the lockfile in the Dockerfile and the pylint CI workflow
 
 ## [0.5.5] 2024-03-19
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file
