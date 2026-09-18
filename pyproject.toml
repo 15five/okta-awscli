@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "okta-awscli"
+dynamic = ["version"]
+description = "Provides a wrapper for Okta authentication to awscli"
+readme = "README.md"
+license = { text = "Apache License 2.0" }
+authors = [
+    { name = "James Hale", email = "james@hale.dev" },
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "niquests",
+    "click",
+    "beautifulsoup4",
+    "boto3",
+    "ConfigParser",
+    "validators",
+]
+
+[project.optional-dependencies]
+U2F = ["python-u2flib-host"]
+
+[project.urls]
+Homepage = "https://github.com/okta-awscli/okta-awscli"
+
+[project.scripts]
+okta-awscli = "oktaawscli.okta_awscli:main"
+
+[dependency-groups]
+dev = ["pylint"]
+
+[tool.hatch.version]
+path = "oktaawscli/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["oktaawscli"]
