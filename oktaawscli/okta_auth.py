@@ -49,6 +49,7 @@ class OktaAuth():
         resp = self.session.post(self.auth_url, json=auth_data)
         resp_json = resp.json()
         self.cookies = resp.cookies
+        session_token = None
         if 'status' in resp_json:
             if resp_json['status'] == 'MFA_REQUIRED':
                 factors_list = resp_json['_embedded']['factors']
