@@ -1,6 +1,7 @@
 # Changelog
 ## [Unreleased]
 - Add support for Python 3.12
+- Replace requests with niquests and urllib3 with urllib3.future
 - Bugfix: use the AWS profile resolved from config when no `--profile` CLI argument is given ([#181](https://github.com/okta-awscli/okta-awscli/pull/181))
 
 ## [0.5.5] 2024-03-19
