@@ -8,6 +8,7 @@
 - Remove obsolete MANIFEST file
 - Remove requirements.txt; dependencies are now managed solely by uv (pyproject.toml + uv.lock)
 - Install dependencies via uv from the lockfile in the Dockerfile and the pylint CI workflow
+- Drop support for Python older than 3.12; require Python >= 3.12
 
 ## [0.5.5] 2024-03-19
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file
