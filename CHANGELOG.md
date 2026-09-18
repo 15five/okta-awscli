@@ -1,6 +1,7 @@
 # Changelog
 ## [Unreleased]
 - Add support for Python 3.12
+- Bugfix: use the AWS profile resolved from config when no `--profile` CLI argument is given ([#181](https://github.com/okta-awscli/okta-awscli/pull/181))
 - Replace requests with niquests and urllib3 with urllib3.future
 - Migrate packaging from setup.py/Pipfile to uv + pyproject.toml
 - Remove obsolete .pyup.yml, CONTRIBUTING.md, and CODE_OF_CONDUCT.md
