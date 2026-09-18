@@ -7,14 +7,18 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Initialize Python 3.9
+    - name: Initialize Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
-          python-version: 3.9
+          python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
