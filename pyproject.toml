@@ -30,6 +30,7 @@ dependencies = [
     "boto3",
     "ConfigParser",
     "validators",
+    "filelock",
 ]
 
 [project.optional-dependencies]

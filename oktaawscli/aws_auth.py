@@ -10,6 +10,7 @@ from enum import Enum
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 from subprocess import call
+from oktaawscli._locking import atomic_write, locked
 
 
 class AwsPartition(Enum):
@@ -55,12 +56,14 @@ class AwsAuth():
             self.logger.debug("Setting AWS profile to %s" % self.profile)
 
     def set_default_profile(self, parser: RawConfigParser):
+        # Callers hold the lock on self.creds_file so this write does not need
+        # to (and must not) re-acquire it.
         if not parser.has_section('default'):
             parser.add_section('default')
         for key, value in parser.items(self.profile):
             parser.set('default', key, value)
         self.logger.info("Setting default profile.")
-        with open(self.creds_file, 'w+') as configfile:
+        with atomic_write(self.creds_file) as configfile:
             parser.write(configfile)
 
     def choose_aws_role(self, assertion, refresh_role):
@@ -171,7 +174,10 @@ of roles assigned to you.""" % self.role)
 
         self.logger.info("STS credentials are valid. Nothing to do.")
         if self.should_set_default_profile:
-            AwsAuth.set_default_profile(self, parser)
+            with locked(self.creds_file):
+                parser = RawConfigParser()
+                parser.read(self.creds_file)
+                AwsAuth.set_default_profile(self, parser)
 
         return True
 
@@ -179,26 +185,28 @@ of roles assigned to you.""" % self.role)
         """ Writes STS auth information to credentials file """
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
-        config = RawConfigParser()
 
-        if os.path.isfile(self.creds_file):
-            config.read(self.creds_file)
+        with locked(self.creds_file):
+            config = RawConfigParser()
 
-        if not config.has_section(self.profile):
-            config.add_section(self.profile)
+            if os.path.isfile(self.creds_file):
+                config.read(self.creds_file)
 
-        config.set(self.profile, 'aws_access_key_id', access_key_id)
-        config.set(self.profile, 'aws_secret_access_key', secret_access_key)
-        config.set(self.profile, 'aws_session_expiration', session_token_expiry)
-        config.set(self.profile, 'aws_session_token', session_token)
+            if not config.has_section(self.profile):
+                config.add_section(self.profile)
 
-        with open(self.creds_file, 'w+') as configfile:
-            config.write(configfile)
-        self.logger.info("Temporary credentials written to profile: %s" % self.profile)
-        self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
-        
-        if self.profile != 'default' and self.should_set_default_profile:
-            AwsAuth.set_default_profile(self, config)
+            config.set(self.profile, 'aws_access_key_id', access_key_id)
+            config.set(self.profile, 'aws_secret_access_key', secret_access_key)
+            config.set(self.profile, 'aws_session_expiration', session_token_expiry)
+            config.set(self.profile, 'aws_session_token', session_token)
+
+            with atomic_write(self.creds_file) as configfile:
+                config.write(configfile)
+            self.logger.info("Temporary credentials written to profile: %s" % self.profile)
+            self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
+
+            if self.profile != 'default' and self.should_set_default_profile:
+                AwsAuth.set_default_profile(self, config)
 
     @staticmethod
     def __extract_available_roles_from(assertion):

@@ -5,6 +5,7 @@ import os
 import sys
 import logging
 import click
+from filelock import Timeout
 from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
@@ -138,14 +139,21 @@ def main(okta_profile, profile, verbose, version,
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger,
                        set_default_profile=not no_default_profile)
     profile = aws_auth.profile
-    if force or not aws_auth.check_sts_token():
-        if force and profile:
+    try:
+        if force or not aws_auth.check_sts_token():
+            if force and profile:
 
-            logger.info("Force option selected, \
-                getting new credentials anyway.")
-        get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
+                logger.info("Force option selected, \
+                    getting new credentials anyway.")
+            get_credentials(
+                aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
+            )
+    except Timeout as exc:
+        logger.error(
+            "Could not acquire lock on %s - another okta-awscli process is "
+            "holding it. Try again." % exc.lock_file
         )
+        sys.exit(1)
 
     if awscli_args:
         aws_auth.execute_aws_args(awscli_args, logger)
