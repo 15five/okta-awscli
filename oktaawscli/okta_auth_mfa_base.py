@@ -17,6 +17,19 @@ class OktaAuthMfaBase():
         self.totp_token = totp_token
 
 
+    @staticmethod
+    def _device_description(factor):
+        """ Builds a short description of the device a factor belongs to """
+        profile = factor.get('profile') or {}
+        parts = []
+        for key in ('name', 'deviceType', 'phoneNumber'):
+            value = profile.get(key)
+            if value and value not in parts:
+                parts.append(value)
+        if not parts and profile.get('credentialId'):
+            parts.append(profile['credentialId'])
+        return " / ".join(parts)
+
     def verify_mfa(self, factors_list):
         """ Performs MFA auth against Okta """
 
@@ -62,6 +75,10 @@ class OktaAuthMfaBase():
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
+                device = self._device_description(factor)
+                if device:
+                    factor_name = "%s (%s)" % (factor_name, device)
+
                 if self.factor:
                     if self.factor == factor_provider:
                         factor_choice = index
@@ -101,7 +118,11 @@ class OktaAuthMfaBase():
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE" and factor['factorType'] !='u2f':
-                print("Waiting for push verification...")
+                device = self._device_description(factor)
+                if device:
+                    print("Waiting for push verification on %s..." % device)
+                else:
+                    print("Waiting for push verification...")
                 correct_answer_shown = False
                 while True:
                     resp = requests.post(
