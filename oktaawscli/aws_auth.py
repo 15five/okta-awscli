@@ -15,12 +15,15 @@ from subprocess import call
 class AwsPartition(Enum):
     AWS = 1 
     AWS_US_GOV = 2
+    AWS_EUSC = 3
+    AWS_CN = 4
 
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, lookup, verbose, logger):
+    def __init__(self, profile, okta_profile, lookup, verbose, logger,
+                 set_default_profile=True):
         home_dir = os.path.expanduser('~')
         shared_credentials_file = os.getenv("AWS_SHARED_CREDENTIALS_FILE")
         if shared_credentials_file:
@@ -34,6 +37,7 @@ class AwsAuth():
         self.verbose = verbose
         self.logger = logger
         self.role = ""
+        self.should_set_default_profile = set_default_profile
         self.aws_partition = AwsPartition.AWS
 
         okta_config = home_dir + '/.okta-aws'
@@ -91,6 +95,10 @@ of roles assigned to you.""" % self.role)
         logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
         if aws_partition == AwsPartition.AWS_US_GOV:
             sts = boto3.client('sts', region_name='us-gov-west-1')
+        elif aws_partition == AwsPartition.AWS_EUSC:
+            sts = boto3.client('sts', region_name='eusc-de-east-1')
+        elif aws_partition == AwsPartition.AWS_CN:
+            sts = boto3.client('sts', region_name='cn-north-1')
         else:
             sts = boto3.client('sts')
 
@@ -136,6 +144,10 @@ of roles assigned to you.""" % self.role)
         self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
             session = boto3.Session(profile_name=self.profile, region_name='us-gov-west-1')
+        elif self.aws_partition == AwsPartition.AWS_EUSC:
+            session = boto3.Session(profile_name=self.profile, region_name='eusc-de-east-1')
+        elif self.aws_partition == AwsPartition.AWS_CN:
+            session = boto3.Session(profile_name=self.profile, region_name='cn-north-1')
         else:
             session = boto3.Session(profile_name=self.profile)
 
@@ -158,7 +170,8 @@ of roles assigned to you.""" % self.role)
             return False
 
         self.logger.info("STS credentials are valid. Nothing to do.")
-        AwsAuth.set_default_profile(self, parser)
+        if self.should_set_default_profile:
+            AwsAuth.set_default_profile(self, parser)
 
         return True
 
@@ -184,7 +197,7 @@ of roles assigned to you.""" % self.role)
         self.logger.info("Temporary credentials written to profile: %s" % self.profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
         
-        if self.profile != 'default':
+        if self.profile != 'default' and self.should_set_default_profile:
             AwsAuth.set_default_profile(self, config)
 
     @staticmethod
@@ -214,7 +227,12 @@ of roles assigned to you.""" % self.role)
                 secret_access_key = creds['SecretAccessKey']
                 session_token = creds['SessionToken']
                 arn_region = role.principal_arn.split(':')[1]
-                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+                if arn_region == 'aws-us-gov':
+                    iam_region = 'us-gov-west-1'
+                elif arn_region == 'aws-eusc':
+                    iam_region = 'eusc-de-east-1'
+                else:
+                    iam_region = 'us-east-1'
 
                 client = boto3.client('iam',
                                       region_name = iam_region,
@@ -242,6 +260,10 @@ of roles assigned to you.""" % self.role)
         arn_aws_partition = role_arn.split(':')[1]
         if arn_aws_partition == 'aws-us-gov':
             return AwsPartition.AWS_US_GOV
+        elif arn_aws_partition == 'aws-eusc':
+            return AwsPartition.AWS_EUSC
+        elif arn_aws_partition == 'aws-cn':
+            return AwsPartition.AWS_CN
         else:
             return AwsPartition.AWS
 
