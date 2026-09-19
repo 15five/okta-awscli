@@ -22,7 +22,8 @@ class AwsPartition(Enum):
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, lookup, verbose, logger):
+    def __init__(self, profile, okta_profile, lookup, verbose, logger,
+                 set_default_profile=True):
         home_dir = os.path.expanduser('~')
         shared_credentials_file = os.getenv("AWS_SHARED_CREDENTIALS_FILE")
         if shared_credentials_file:
@@ -36,6 +37,7 @@ class AwsAuth():
         self.verbose = verbose
         self.logger = logger
         self.role = ""
+        self.should_set_default_profile = set_default_profile
         self.aws_partition = AwsPartition.AWS
 
         okta_config = home_dir + '/.okta-aws'
@@ -168,7 +170,8 @@ of roles assigned to you.""" % self.role)
             return False
 
         self.logger.info("STS credentials are valid. Nothing to do.")
-        AwsAuth.set_default_profile(self, parser)
+        if self.should_set_default_profile:
+            AwsAuth.set_default_profile(self, parser)
 
         return True
 
@@ -194,7 +197,7 @@ of roles assigned to you.""" % self.role)
         self.logger.info("Temporary credentials written to profile: %s" % self.profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
         
-        if self.profile != 'default':
+        if self.profile != 'default' and self.should_set_default_profile:
             AwsAuth.set_default_profile(self, config)
 
     @staticmethod
