@@ -13,6 +13,7 @@
 - Add support for the AWS China (aws-cn) partition (upstream #182)
 - Add --no-default-profile flag to opt out of writing the [default] profile (from kvinck)
 - Show the device name behind each MFA factor (from kvinck)
+- Serialize concurrent runs and write `~/.aws/credentials` and `~/.okta-aws` atomically under a cross-process file lock (`filelock`), so parallel okta-awscli invocations no longer corrupt or clobber each other's config. Adapted by hand from [amplify-education/okta-awscli](https://github.com/amplify-education/okta-awscli) (SHAs `02474e0`, `14897cc`, `0d27063`, `144f2ef`, `33f9046`).
 
 ## [0.5.5] 2024-03-19
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file
